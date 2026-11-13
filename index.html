@@ -70,6 +70,14 @@ background:radial-gradient(220px 110px at var(--sx,30%) var(--sy,0%),rgba(255,25
 #clr{margin-left:8px;display:grid;place-items:center}
 #clr.off{opacity:0!important;pointer-events:none}
 .cr.dis.rev .cd{-webkit-mask-image:linear-gradient(90deg,#000 var(--ea),transparent var(--eb));mask-image:linear-gradient(90deg,#000 var(--ea),transparent var(--eb))}
+.fill{position:absolute;display:none;z-index:5;pointer-events:none;place-items:center;background:linear-gradient(145deg,rgba(255,255,255,.66),rgba(150,205,255,.52));border:1px solid rgba(255,255,255,.75);box-shadow:inset 0 1.5px 1px rgba(255,255,255,.9);-webkit-backdrop-filter:blur(16px) saturate(170%);backdrop-filter:blur(16px) saturate(170%);overflow:hidden;color:#1f3fd0;font-weight:700;font-size:17px}
+.fill>div{text-align:center}
+.fill i{width:46px;height:46px;border-radius:50%;background:#34c759;display:grid;place-items:center;margin:0 auto 8px;transform:scale(0);transition:transform .55s cubic-bezier(.3,1.9,.5,1) .3s}
+.fill.on i{transform:scale(1)}
+.fill svg path{stroke-dasharray:30;stroke-dashoffset:30;transition:stroke-dashoffset .45s cubic-bezier(.4,.9,.3,1) .55s}
+.fill.on svg path{stroke-dashoffset:0}
+.fill span{display:block;opacity:0;transform:translateY(6px);transition:opacity .4s .6s,transform .5s cubic-bezier(.3,1.6,.5,1) .6s}
+.fill.on span{opacity:1;transform:none}
 @keyframes pulse{50%{box-shadow:0 0 18px rgba(255,69,58,.75)}}
 </style>
 </head>
@@ -91,7 +99,7 @@ const $=s=>document.querySelector(s),clr=$('#clr'),list=$('#list'),inner=$('#in'
 const T=58,REV=72,BASE=8,GAP=10,clamp=(a,b,c)=>Math.min(c,Math.max(b,a)),f=n=>(+n).toFixed(1);
 const sp=(o,a,b,t,K,C,h)=>{o[b]+=(-K*(o[a]-t)-C*o[b])*h;o[a]+=o[b]*h};
 const cards=[],PARTS=[];let SW=0,dpr=Math.min(devicePixelRatio||1,2);
-const PAIRS=[['p','v','t'],['x','xv',0],['E','Ev','Et'],['e','ev','et'],['q','qv',0],['R','Rv','Rt'],['Sd','Sv','St'],['w','wv',0],['pr','prv','prt'],['Cf','Cv','Ct'],['L','Lv','Lt']];
+const PAIRS=[['p','v','t'],['x','xv',0],['E','Ev','Et'],['e','ev','et'],['q','qv',0],['R','Rv','Rt'],['Sd','Sv','St'],['w','wv',0],['pr','prv','prt'],['Cf','Cv','Ct'],['L','Lv','Lt'],['sq','sqv',0],['Mg','Mgv','Mt'],['Fl','Flv','Ft']];
 function size(){SW=Math.min(innerWidth*.92,460);list.style.width=(SW+48)+'px';cards.forEach(c=>{c.el.style.width=SW+'px';c.fr=0});fx.width=innerWidth*dpr;fx.height=innerHeight*dpr}
 addEventListener('resize',size);size();
 const vib=p=>{if(navigator.vibrate)navigator.vibrate(p)};
@@ -103,6 +111,7 @@ const TPL=`<div class="rig"><div class="m glass"></div>
 <div class="tx"><div class="r"><span class="nm"></span><span class="tm"></span></div><div class="ms"></div></div>
 <div class="ex"></div>
 <div class="acts"><button class="conf"><i></i>Confirmer</button><button class="del">Supprimer</button><div class="rep" role="button" tabindex="0"><span>Répondre</span><input placeholder="Écrire un message…" autocomplete="off" enterkeyhint="send"><em>Envoyé ✓</em></div><button class="send" aria-label="Envoyer"><svg class="sa" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div>
+<div class="fill"><div><i><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i><span>Message envoyé</span></div></div>
 </div></div>
 <button class="trash" aria-label="Supprimer la notification"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button></div>`;
 
@@ -172,10 +181,10 @@ function drawFx(now){
 function mkCard(d){
   const el=document.createElement('div');el.className='cr';el.style.width=SW+'px';el.innerHTML=TPL;inner.appendChild(el);
   const q=s=>el.querySelector(s);
-  const rig=q('.rig'),glass=q('.glass'),pf=q('.rim path'),hit=q('.hit'),trash=q('.trash'),ti=q('.trash svg'),acts=q('.acts'),ex=q('.ex'),ms=q('.ms'),av=q('.av'),rep=q('.rep'),inp=q('input'),snd=q('.send'),del=q('.del'),conf=q('.conf'),cbar=q('.conf i'),M=[glass,q('.rim'),q('.cd')];
+  const rig=q('.rig'),glass=q('.glass'),pf=q('.rim path'),hit=q('.hit'),trash=q('.trash'),ti=q('.trash svg'),acts=q('.acts'),ex=q('.ex'),ms=q('.ms'),av=q('.av'),rep=q('.rep'),inp=q('input'),snd=q('.send'),del=q('.del'),conf=q('.conf'),cbar=q('.conf i'),fill=q('.fill'),M=[glass,q('.rim'),q('.cd')];
   q('.nm').textContent=d.n;q('.tm').textContent=d.t;ms.textContent=ex.textContent=d.m;
   if(d.h!=null)q('.av i').style.background='conic-gradient(from 20deg,hsl('+d.h+',90%,66%),hsl('+(d.h+70)+',85%,60%),hsl('+(d.h+150)+',90%,66%),hsl('+(d.h+220)+',85%,64%),hsl('+d.h+',90%,66%))';
-  const S={p:0,v:0,t:0,E:0,Ev:0,Et:0,e:0,ev:0,et:1,q:0,qv:0,nb:0,dk:0,R:0,Rv:0,Rt:0,Sd:0,Sv:0,St:0,w:0,wv:0,pr:0,prv:0,prt:0,cut:0,Cf:0,Cv:0,Ct:0,ct0:0,x:0,xv:0,L:0,Lv:0,Lt:1,busy:false,drag:false,raw:0,dead:false,rm:false,ds:0,g:{}};
+  const S={p:0,v:0,t:0,E:0,Ev:0,Et:0,e:0,ev:0,et:1,q:0,qv:0,nb:0,dk:0,R:0,Rv:0,Rt:0,Sd:0,Sv:0,St:0,w:0,wv:0,pr:0,prv:0,prt:0,cut:0,Cf:0,Cv:0,Ct:0,ct0:0,sq:0,sqv:0,Mg:0,Mgv:0,Mt:0,Fl:0,Flv:0,Ft:0,x:0,xv:0,L:0,Lv:0,Lt:1,busy:false,drag:false,raw:0,dead:false,rm:false,ds:0,g:{}};
   const C={el,S,h:80,closeAll,update,dissolve,py:0,pyv:0,ps:1,psv:0,pa:1,pav:0,ca:1,init:false,idx:0,fr:0};
   let ctm,lastTap=0,sx=0,sy=0,sp0=0,lt=0,lx=0,vel=0,vcx=0;
 
@@ -198,7 +207,7 @@ function mkCard(d){
     glass.style.clipPath='path("'+d+'")';pf.setAttribute('d',d);
     const al=clamp(S.e*1.6,0,1)*C.pa,es=(.9+.1*S.e)*(1-.035*S.pr),jE=clamp(S.Ev*.012,-.06,.06);
     M[0].style.opacity=al;M[1].style.opacity=al;M[2].style.opacity=al*C.ca;
-    rig.style.transform='translate('+f(S.x)+'px,'+f((1-S.e)*-46)+'px) rotate('+f(S.x*.025)+'deg) scale('+(es*(1+jv*.1)*(1-jE*.4))+','+(es*(1-Math.abs(jv)*.22)*(1+jE))+')';
+    rig.style.transform='translate('+f(S.x)+'px,'+f((1-S.e)*-46)+'px) rotate('+f(S.x*.025+S.sq*.35)+'deg) scale('+(es*(1+jv*.1)*(1-jE*.4)*(1+.07*S.sq))+','+(es*(1-Math.abs(jv)*.22)*(1+jE)*(1-.1*S.sq))+')';
     el.style.setProperty('--ha',.34+.26*S.pr);
     const hs=hit.style;hs.left=f(ox)+'px';hs.width=f(cw)+'px';hs.height=f(ch)+'px';hs.borderRadius=f(r)+'px';
     const ea=clamp((S.E-.35)/.45,0,1),ba=clamp((S.E-.55)/.4,0,1);
@@ -208,7 +217,7 @@ function mkCard(d){
     acts.style.pointerEvents=S.Et&&!S.busy?'auto':'none';
     av.style.transform='scale('+(1+.1*clamp(S.E,0,1.2))+')';
     const Rs=S.R,rw=cw-32,bw=(rw-10)/2,Sd=clamp(S.Sd,0,1.2),nr=clamp(1-Rs*1.8,0,1);
-    rep.style.width=f(bw+(rw-52-bw)*Rs)+'px';rep.style.transform='translateX('+f(S.w)+'px)';
+    rep.style.width=f(bw+(rw-52-bw)*Rs+52*S.Mg)+'px';rep.style.transform='translateX('+f(S.w)+'px)';
     del.style.width=f(bw)+'px';del.style.left=f(bw+10)+'px';del.style.opacity=nr;del.style.transform='scale('+(1-.2*clamp(Rs,0,1))+')';
     const lab=S.Ct?'Annuler':'Supprimer';if(del.textContent!==lab)del.textContent=lab;
     conf.style.width=f(bw)+'px';conf.style.left=f(bw+10)+'px';
@@ -219,7 +228,9 @@ function mkCard(d){
     rep.firstElementChild.style.opacity=clamp(1-Rs*2.5,0,1);
     inp.style.opacity=clamp((Rs-.5)*2.5,0,1);
     const on=S.R>.8&&!S.busy?'auto':'none';snd.style.pointerEvents=on;inp.style.pointerEvents=on;
-    rep.style.pointerEvents=S.Ct?'none':'auto';
+    const Fl=S.Fl;
+    if(Fl>.002){const fl=fill.style;fl.display='grid';fl.left=f(16*(1-Fl))+'px';fl.top=f((ch-58)*(1-Fl))+'px';fl.width=f(rw+(cw-rw)*Fl)+'px';fl.height=f(42+(ch-42)*Fl)+'px';fl.borderRadius=f(21+(r-21)*Fl)+'px'}else if(fill.style.display!=='none')fill.style.display='none';
+    rep.style.pointerEvents=(S.Ct||!S.Et||S.busy)?'none':'auto';
     trash.style.opacity=clamp(p*3,0,1)*C.pa;
     trash.style.transform='translateX('+f(ccx-T/2)+'px)';
     ti.style.transform='scale('+s+')';
@@ -235,9 +246,10 @@ function mkCard(d){
       const h=dt/4;
       if(!S.drag&&!S.dead){sp(S,'p','v',S.t,210,11,h);sp(S,'x','xv',0,200,14,h)}
       sp(S,'E','Ev',S.Et,190,13,h);sp(S,'e','ev',S.et,170,13,h);sp(S,'q','qv',0,320,9,h);
-      S.St=(S.Rt&&S.R>.4)?1:0;
+      S.St=(S.Rt&&S.R>.4&&!S.busy)?1:0;
       sp(S,'R','Rv',S.Rt,250,15,h);sp(S,'Sd','Sv',S.St,300,13,h);sp(S,'w','wv',0,420,11,h);sp(S,'pr','prv',S.prt,420,24,h);
       sp(S,'Cf','Cv',S.Ct,300,14,h);sp(S,'L','Lv',S.Lt,150,17,h);
+      sp(S,'sq','sqv',0,240,8,h);sp(S,'Mg','Mgv',S.Mt,260,15,h);sp(S,'Fl','Flv',S.Ft,150,13,h);
     }
     S.nb=S.drag?S.nb+(1-S.nb)*Math.min(1,dt*18):S.nb*Math.exp(-dt*11);
     if(S.nb<.004&&!S.drag)S.nb=0;
@@ -302,21 +314,21 @@ function mkCard(d){
   function doSend(){
     if(S.busy||S.R<.8)return;
     if(!inp.value.trim()){S.wv=160;inp.focus();return}
-    S.busy=true;acts.classList.add('sent');inp.blur();S.Sv-=3;
-    setTimeout(()=>{S.Et=0;S.Rt=0},750);
-    setTimeout(()=>{S.et=0},1150);
-    setTimeout(()=>{S.rm=true;S.Lt=0;setTimeout(destroy,900)},2200);
+    S.busy=true;acts.classList.add('sent');inp.blur();S.Sv-=3;S.Mt=1;vib([8,30,12]);
+    setTimeout(()=>{S.Ft=1;fill.classList.add('on');S.sqv=6},300);
+    setTimeout(()=>{S.sqv=-8;vib(10)},820);
+    setTimeout(()=>{S.sqv=5;dissolve({force:1,tint:1,wx:0,wy:-120,ax:60,ay:-300,wk:1.25,dens:.9})},1500);
   }
   snd.addEventListener('click',doSend);
   inp.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')doSend();if(e.key==='Escape')closeAll()});
 
   /* suppression en poussière */
   function dissolve(o){o=(o&&typeof o.wx==='number')?o:{};
-    if(S.dead||S.busy)return;
+    if(S.dead||(S.busy&&!o.force))return;
     S.dead=true;S.drag=false;hint.style.opacity=0;vib([12,30,10]);
     const sr=el.getBoundingClientRect(),g=S.g,xs=S.x,P0=performance.now();
     const cl=sr.left+xs+g.ox,ct=sr.top,cw=g.cw,chh=g.ch;
-    const cols=['#ff5a4d','#3ddc84','#ffb84d','#6fb5ff'],wh=['#ffffff','#dfe6ff','#bcd0ff'];
+    const cols=o.tint?['#7dffb0','#3ddc84','#b6ffd6','#9fd8ff']:['#ff5a4d','#3ddc84','#ffb84d','#6fb5ff'],wh=o.tint?['#ffffff','#d9ffe9','#bfeaff']:['#ffffff','#dfe6ff','#bcd0ff'];
     const rev=!!o.rev,o2=g.ox+cw+60,wo={wx:o.wx||0,wy:o.wy||0,ax:o.ax||0,ay:o.ay||0,wk:o.wk||1};
     const tf=(x,y)=>{const X=x-sr.left-xs,Y=y-ct,oo=g.ox-60;let c;if(rev){c=(o2-X)/(cw+120);c=(o2-X+nz(Y,c))/(cw+120)}else{c=(X-oo)/(cw+120);c=(X-oo-nz(Y,c))/(cw+120)}return clamp(c,0,1)*.9*1000};
     const n=Math.min(2200,(cw*chh/16)|0)*(o.dens||1)|0;
